@@ -1,0 +1,59 @@
+{
+  "orders": [
+    {
+      "id": "1",
+      "product": [
+        {
+          "products_id": "1",
+          "products_name": "C01 Mì tươi Gà xé",
+          "products_price": 39000,
+          "quantity": 1,
+          "improducts_image": "//product.hstatic.net/200000892317/product/c01_c02_c21_c22_80bfcc18d1be43468950e56b0f517853_large.jpg"
+        }
+      ],
+      "totalAmount": 39000,
+      "status": "Đang xử lý",
+      "address": {
+        "soNha": "123",
+        "duong": "đường Hoàng Diệu",
+        "phuong": "Phường Linh Trung",
+        "huyen": "Thành phố Thủ Đức",
+        "tinh": "Thành phố Hồ Chí Minh"
+      },
+      "phiShip": 15000,
+      "thoiGian": "23 phút",
+      "user": {
+        "user_fullname": "Phan Ngọc Tài",
+        "user_phone": "0901234567"
+      }
+    },
+    {
+      "id": "2",
+      "product": [
+        {
+          "products_id": "2",
+          "products_name": "C02 Mì tươi Đùi gà xé",
+          "products_price": 69000,
+          "quantity": 1,
+          "improducts_image": "//product.hstatic.net/200000892317/product/c01_c02_c21_c22_467b878e8a174f53996af406f7a278c1_large.jpg"
+        }
+      ],
+      "totalAmount": 39000,
+      "status": "Đang xử lý",
+      "address": {
+        "soNha": "456",
+        "duong": "Đường Võ Văn Ngân",
+        "phuong": "Phường Bình Thọ",
+        "huyen": "Thành phố Thủ Đức",
+        "tinh": "Thành phố Hồ Chí Minh"
+      },
+      "phiShip": 15000,
+      "thoiGian": "23 phút",
+      "user": {
+        "user_fullname": "Nguyễn Văn An",
+        "user_phone": "0902233445"
+      }
+    }
+
+  ]
+}

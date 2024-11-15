@@ -1,0 +1,84 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "fullname": "Phan Ngọc Tài",
+      "email": "21130164@st.hcmuaf.edu.vn",
+      "username": "user01",
+      "password": "User01@",
+      "address": {
+        "soNha": "123",
+        "duong": "Đường Hoàng Diệu",
+        "phuong": "Linh Trung",
+        "huyen": "Thủ Đức",
+        "tinh": "TP.HCM"
+      },
+      "phone": "0901234567",
+      "birthDate": "1990-01-01"
+    },
+    {
+      "id": "2",
+      "fullname": "Nguyễn Văn An",
+      "email": "21130164@st.hcmuaf.edu.vn",
+      "username": "user02",
+      "password": "User02@",
+      "address": {
+        "soNha": "456",
+        "duong": "Đường Võ Văn Ngân",
+        "phuong": "Bình Thọ",
+        "huyen": "Thủ Đức",
+        "tinh": "TP.HCM"
+      },
+      "phone": "0902233445",
+      "birthDate": "1992-02-02"
+    },
+    {
+      "id": "3",
+      "fullname": "Trần Thị Bình",
+      "email": "21130164@st.hcmuaf.edu.vn",
+      "username": "user03",
+      "password": "User03@",
+      "address": {
+        "soNha": "789",
+        "duong": "Đường Kha Vạn Cân",
+        "phuong": "Hiệp Bình Chánh",
+        "huyen": "Thủ Đức",
+        "tinh": "TP.HCM"
+      },
+      "phone": "0903234567",
+      "birthDate": "1994-03-03"
+    },
+    {
+      "id": "4",
+      "fullname": "Lê Minh Cường",
+      "email": "21130164@st.hcmuaf.edu.vn",
+      "username": "user04",
+      "password": "User04@",
+      "address": {
+        "soNha": "123",
+        "duong": "Đường Phạm Văn Đồng",
+        "phuong": "Linh Tây",
+        "huyen": "Thủ Đức",
+        "tinh": "TP.HCM"
+      },
+      "phone": "0904234567",
+      "birthDate": "1988-04-04"
+    },
+    {
+      "id": "5",
+      "fullname": "Phạm Thị Duyên",
+      "email": "21130164@st.hcmuaf.edu.vn",
+      "username": "user05",
+      "password": "User05@",
+      "address": {
+        "soNha": "456",
+        "duong": "Đường Tô Ngọc Vân",
+        "phuong": "Linh Đông",
+        "huyen": "Thủ Đức",
+        "tinh": "TP.HCM"
+      },
+      "phone": "0905234567",
+      "birthDate": "1996-05-05"
+    }
+  ]
+}
