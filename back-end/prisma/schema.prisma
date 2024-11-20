@@ -21,7 +21,6 @@ model User {
   user_id        Int       @id @default(autoincrement())
   user_fullname  String?   @db.VarChar(255)
   user_email     String?   @db.VarChar(255)
-  user_username  String?   @db.VarChar(255)
   user_password  String?   @db.VarChar(255)
   user_phone     String?   @db.VarChar(255)
   user_birthDate DateTime? @db.DateTime(0)
@@ -38,21 +37,21 @@ model Address {
   huyen      String? @db.VarChar(255)
   tinh       String? @db.VarChar(255)
   user_id    Int?    @unique(map: "user_id")
-  user       User?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  user       User?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_id")
   Order      Order[]
 }
 
 model Order {
-  order_id     Int           @id @default(autoincrement())
+  order_id     Int            @id @default(autoincrement())
   totalAmount  Int?
-  status       String?       @db.VarChar(255)
+  status       String?        @db.VarChar(255)
   phiShip      Int?
-  thoiGian     String?       @db.VarChar(255)
+  thoiGian     String?        @db.VarChar(255)
   user_id      Int?
   address_id   Int?
-  createdAt    DateTime?     @default(now()) @db.Timestamp(0)
-  User         User?         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "Order_ibfk_1")
-  Address      Address?      @relation(fields: [address_id], references: [address_id], onDelete: NoAction, onUpdate: NoAction, map: "Order_ibfk_2")
+  createdAt    DateTime?      @default(now()) @db.Timestamp(0)
+  User         User?          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "Order_ibfk_1")
+  Address      Address?       @relation(fields: [address_id], references: [address_id], onDelete: Cascade, onUpdate: NoAction, map: "Order_ibfk_2")
   OrderProduct OrderProduct[]
 
   @@index([address_id], map: "address_id")
@@ -65,7 +64,8 @@ model OrderProduct {
   products_id Int?
   order_id    Int?
   Product     Product? @relation(fields: [products_id], references: [products_id], onDelete: Cascade, onUpdate: NoAction, map: "OrderProduct_ibfk_1")
-  Order       Order    @relation(fields: [id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "OrderProduct_ibfk_2")
+  Order       Order?   @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "OrderProduct_ibfk_2")
 
-  @@unique([products_id, id], map: "products_id")
+  @@unique([products_id, order_id], map: "products_id")
+  @@index([order_id], map: "order_id")
 }

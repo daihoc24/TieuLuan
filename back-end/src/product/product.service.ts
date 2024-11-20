@@ -46,6 +46,30 @@ export class ProductService {
       throw new Error(`Error creating user: ${err}`);
     }
   }
+  async uploadProductImg(id: number, image: string) {
+    try {
+      const data = await this.prisma.product.findUnique({
+        where: {
+          products_id: id,
+        },
+      });
+      if (!data) {
+        throw new Error(`Product with id ${id} not found`);
+      }
+      const upload = await this.prisma.product.update({
+        where: {
+          products_id: id,
+        },
+        data: {
+          products_image: image,
+        },
+      });
+
+      return { data: upload };
+    } catch (err) {
+      throw new Error(`Error creating user: ${err}`);
+    }
+  }
   async updateProduct(id: number, body: UpdateProductDto) {
     try {
       const productExists = await this.prisma.product.findUnique({
@@ -72,7 +96,10 @@ export class ProductService {
           products_id: id,
         },
       });
-      return { product };
+      return {
+        message: 'Order deleted successfully',
+        product,
+      };
     } catch { }
   }
 }

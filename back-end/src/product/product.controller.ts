@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query, Put, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query, Put, Req, UseGuards, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/authGuard';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiFile } from './apiFile';
+import { diskStorage } from 'multer';
 
 @ApiTags('Product')
 @Controller('api/Product')
@@ -23,6 +27,39 @@ export class ProductController {
       message: 'Xử lí thành công!',
       data: (await this.productService.getProductInfor(+products_id)).product,
     });
+  }
+  @Post('/upload-productImg/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @ApiFile()
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      storage: diskStorage({
+        destination: process.cwd() + '/public/img',
+        filename: (req, file, callback) =>
+          callback(
+            null, // define lỗi (ignore)
+            new Date().getTime() + `_${file.originalname}`,
+          ),
+      }),
+    }),
+  )
+  async uploadImg(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Param('id') id: number,
+    @Res() res: Response,
+  ) {
+    for (const file of files) {
+      console.log(file);
+      res.send({
+        message: 'Xử lí thành công!',
+        data: await this.productService.uploadProductImg(
+          +id,
+          file.destination + '/' + file.originalname,
+        ),
+      });
+    }
   }
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)

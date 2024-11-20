@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -19,5 +19,17 @@ ApiTags('Order')
   createOrder(@Body() CreateOrderDto: CreateOrderDto,
   ) {
     return this.orderService.createOrder(CreateOrderDto);
+  }
+  @Put('/UpdateOrder/:id')
+  updateOrder(
+    @Param('id') id: string,
+    @Body() body: UpdateOrderDto,
+  ) {
+    return this.orderService.updateOrder(+id, body);
+  }
+  @Delete('/DeleteOrder/:id')
+  deleteOrder(@Param('id') id: string
+  ) {
+    return this.orderService.deleteOrder(+id);
   }
 }

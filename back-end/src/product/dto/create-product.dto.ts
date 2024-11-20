@@ -8,10 +8,6 @@ export class CreateProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    products_image: string;
-
-    @ApiProperty()
-    @IsNotEmpty()
     products_price: number;
 
     @ApiProperty()

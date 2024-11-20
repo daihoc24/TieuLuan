@@ -33,6 +33,4 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsInt()
   phiShip: number = 15000; 
-
-
 }

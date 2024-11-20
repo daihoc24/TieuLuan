@@ -10,7 +10,6 @@ export class UserService {
 
   // Thông tin chọn lọc cho người dùng
   selectInfoUser = {
-    user_username: true,
     user_fullname: true,
     user_email: true,
     user_phone: true,
@@ -35,11 +34,10 @@ export class UserService {
           user_id: true,
           user_fullname: true,
           user_email: true,
-          user_username: true,
           user_phone: true,
           user_birthDate: true,
           user_role: true,
-          address: { 
+          address: {
             select: {
               soNha: true,
               duong: true,
@@ -74,30 +72,42 @@ export class UserService {
   // Tạo người dùng mới
   async createUser(body: CreateUserDto) {
     const { address, ...userData } = body;
-  
-    // Tạo mới Address
-    const createdAddress = await this.prisma.address.create({
-      data: {
-        soNha: address.soNha,
-        duong: address.duong,
-        phuong: address.phuong,
-        huyen: address.huyen,
-        tinh: address.tinh,
+    const passBcrypt: string = await bcrypt.hash(userData.user_password, 10);
+    const checkEmail = await this.prisma.user.findFirst({
+      where: {
+        user_email: userData.user_email,
       },
     });
-  
-    // Tạo mới User và liên kết với Address
-    const createdUser = await this.prisma.user.create({
-      data: {
-        ...userData,
-        // Sử dụng quan hệ để kết nối User với Address (thay vì gán address_id trực tiếp)
-        address: {
-          connect: { address_id: createdAddress.address_id },
+    if (!checkEmail) {
+      const createdAddress = await this.prisma.address.create({
+        data: {
+          soNha: address.soNha,
+          duong: address.duong,
+          phuong: address.phuong,
+          huyen: address.huyen,
+          tinh: address.tinh,
         },
-      },
-    });
-  
-    return createdUser;
+      });
+
+      // Tạo mới User và liên kết với Address
+      const createdUser = await this.prisma.user.create({
+        data: {
+          ...userData,
+          user_password: passBcrypt,
+          // Sử dụng quan hệ để kết nối User với Address (thay vì gán address_id trực tiếp)
+          address: {
+            connect: { address_id: createdAddress.address_id },
+          },
+        },
+      });
+      return createdUser;
+    } else {
+      return {
+        status: 400,
+        message: 'Email đã tồn tại. ',
+      };
+    }
+
   }
 
   // Cập nhật thông tin người dùng
@@ -108,10 +118,10 @@ export class UserService {
     let updatedAddresses;
     if (address) {
       updatedAddresses = await this.prisma.address.upsert({
-        where: { user_id: userId }, 
-        update: address,             
-        create: {                    
-          user_id: userId,           
+        where: { user_id: userId },
+        update: address,
+        create: {
+          user_id: userId,
         },
       });
     }
