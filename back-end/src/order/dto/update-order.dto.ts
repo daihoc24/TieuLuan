@@ -19,10 +19,9 @@ export class UpdateOrderDto {
   status?: string; 
 
   @ApiProperty({ required: false })
-  @IsInt()
   @IsOptional()
-  address_id?: number;
-
+  address: string;
+  
   @ApiProperty({ type: [UpdateOrderProductDto], required: false })
   @IsArray()
   @IsOptional()

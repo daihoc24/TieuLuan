@@ -23,7 +23,7 @@ export default function Popup(props: any) {
             <Button className="btn btn-custom" onClick={showModal}>
                 {props.btnText}
             </Button>
-            <Modal title={props.title} open={open} onOk={handleOk} onCancel={handleCancel}>
+            <Modal title={props.title}   footer={null}  open={open} onOk={handleOk} onCancel={handleCancel}>
                 <div>{props.content}</div>
             </Modal>
         </div>

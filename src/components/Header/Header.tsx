@@ -18,17 +18,16 @@ const Header: React.FC = () => {
   };
 
   const handleCartToggle = () => {
-    setIsCartVisible(!isCartVisible);
+    navigate("/cart")
   };
 
   const isLoggedIn = !!(
-    localStorage.getItem("user") || sessionStorage.getItem("user")
+    localStorage.getItem("USER_INFO")
   );
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
-    navigate("/login");
+    localStorage.removeItem("USER_INFO");
+    navigate("/")
   };
   return (
     <div className="header">

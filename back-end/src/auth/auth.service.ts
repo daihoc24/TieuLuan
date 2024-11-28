@@ -11,8 +11,10 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) { }
+  ) {}
+  
   prisma = new PrismaClient();
+
   async login(body: loginDTO) {
     const { user_email, user_password } = body;
     try {
@@ -22,13 +24,16 @@ export class AuthService {
         },
       });
       if (!user) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
+      }
+      if (!user.is_verified) {
+        throw new UnauthorizedException('Tài khoản chưa được xác thực. Vui lòng kiểm tra email.');
       }
 
-      const passComparre = await bcrypt.compare(user_password, user.user_password);
+      const passCompare = await bcrypt.compare(user_password, user.user_password);
 
-      if (!passComparre) {
-        throw new UnauthorizedException();
+      if (!passCompare) {
+        throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
       }
       const token = this.jwtService.sign(
         { data: { id: user.user_id, user_email } },
@@ -40,48 +45,161 @@ export class AuthService {
       return {
         status: 200,
         message: 'Đăng nhập thành công',
-        accessToken: token,
+        content: token,
       };
     } catch (err) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Đăng nhập không thành công');
     }
   }
+
   async signup(body: signupDTO) {
-    const { address, ...userData } = body;
+    const { ...userData } = body;
     const passBcrypt: string = await bcrypt.hash(userData.user_password, 10);
+
+    // Kiểm tra email đã tồn tại
     const checkEmail = await this.prisma.user.findFirst({
       where: {
         user_email: userData.user_email,
       },
     });
-    if (!checkEmail) {
-      const createdAddress = await this.prisma.address.create({
-        data: {
-          soNha: address.soNha,
-          duong: address.duong,
-          phuong: address.phuong,
-          huyen: address.huyen,
-          tinh: address.tinh,
-        },
+    if (checkEmail) {
+      return {
+        status: 400,
+        message: 'Email đã tồn tại.',
+      };
+    }
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Tạo mới User
+    const createdUser = await this.prisma.user.create({
+      data: {
+        ...userData,
+        user_password: passBcrypt,
+        user_role: 'user',
+        verification_code: verificationCode,
+        is_verified: false,
+      },
+    });
+
+    return {
+      message: 'Đăng ký thành công. Vui lòng nhập mã xác thực để hoàn tất.',
+      verificationCode: verificationCode,
+      createdUser,
+    };
+  }
+
+  async verifyAccount(email: string, code: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { user_email: email },
+    });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: 'Email không tồn tại.',
+      };
+    }
+
+    if (user.verification_code === code) {
+      await this.prisma.user.update({
+        where: { user_id: user.user_id },
+        data: { is_verified: true, verification_code: null },
       });
 
-      // Tạo mới User và liên kết với Address
-      const createdUser = await this.prisma.user.create({
-        data: {
-          ...userData,
-          user_password: passBcrypt,
-          user_role: "user",
-          address: {
-            connect: { address_id: createdAddress.address_id },
-          },
-        },
-      });
-      return createdUser;
+      return {
+        message: 'Xác thực thành công! Tài khoản đã được kích hoạt.',
+      };
     } else {
       return {
         status: 400,
-        message: 'Email đã tồn tại. ',
+        message: 'Mã xác thực không chính xác.',
       };
     }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { user_email: email },
+    });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: 'Email không tồn tại.',
+      };
+    }
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await this.prisma.user.update({
+      where: { user_id: user.user_id },
+      data: {
+        verification_code: verificationCode,
+        is_verified: false,
+      },
+    });
+
+    return {
+      message: 'Mã xác thực đã được tạo. Vui lòng nhập mã xác thực để thay đổi mật khẩu.',
+      verificationCode,
+    };
+  }
+
+  async verifyForgotPasswordCode(email: string, verificationCode: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { user_email: email },
+    });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: 'Email không tồn tại.',
+      };
+    }
+
+    if (user.verification_code === verificationCode) {
+      await this.prisma.user.update({
+        where: { user_id: user.user_id },
+        data: {
+          is_verified: true,
+        },
+      });
+      return {
+        message: 'Mã xác thực thành công. Bạn có thể thay đổi mật khẩu mới.',
+      };
+    } else {
+      return {
+        status: 400,
+        message: 'Mã xác thực không chính xác.',
+      };
+    }
+  }
+
+  async resetPassword(email: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { user_email: email },
+    });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: 'Email không tồn tại.',
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { user_id: user.user_id },
+      data: {
+        user_password: hashedPassword,
+        verification_code: null,
+      },
+    });
+
+    return {
+      message: 'Mật khẩu đã được cập nhật thành công',
+    };
   }
 }

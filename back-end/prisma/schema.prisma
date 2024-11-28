@@ -8,37 +8,29 @@ datasource db {
 }
 
 model Product {
-  products_id       Int            @id @default(autoincrement())
-  products_name     String?        @db.VarChar(255)
-  products_image    String?        @db.VarChar(255)
-  products_price    Int?
-  products_type     String?        @db.VarChar(255)
-  products_comments String?        @db.VarChar(255)
-  OrderProduct      OrderProduct[]
+  products_id    Int              @id @default(autoincrement())
+  products_name  String?          @db.VarChar(255)
+  products_image String?          @db.VarChar(255)
+  products_price Int?
+  products_type  String?          @db.VarChar(255)
+  quantitySold   Int?             @default(0)
+  OrderProduct   OrderProduct[]
+  ProductComment ProductComment[]
 }
 
 model User {
-  user_id        Int       @id @default(autoincrement())
-  user_fullname  String?   @db.VarChar(255)
-  user_email     String?   @db.VarChar(255)
-  user_password  String?   @db.VarChar(255)
-  user_phone     String?   @db.VarChar(255)
-  user_birthDate DateTime? @db.DateTime(0)
-  user_role      String?   @db.VarChar(255)
-  address        Address?
-  Order          Order[]
-}
-
-model Address {
-  address_id Int     @id @default(autoincrement())
-  soNha      String? @db.VarChar(255)
-  duong      String? @db.VarChar(255)
-  phuong     String? @db.VarChar(255)
-  huyen      String? @db.VarChar(255)
-  tinh       String? @db.VarChar(255)
-  user_id    Int?    @unique(map: "user_id")
-  user       User?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_id")
-  Order      Order[]
+  user_id           Int              @id @default(autoincrement())
+  user_fullname     String?          @db.VarChar(255)
+  user_email        String?          @db.VarChar(255)
+  user_password     String?          @db.VarChar(255)
+  user_phone        String?          @db.VarChar(255)
+  user_birthDate    DateTime?        @db.DateTime(0)
+  user_role         String?          @db.VarChar(255)
+  verification_code String?          @db.VarChar(6)
+  is_verified       Boolean?         @default(false)
+  user_address      String?          @db.VarChar(255)
+  Order             Order[]
+  ProductComment    ProductComment[]
 }
 
 model Order {
@@ -48,13 +40,11 @@ model Order {
   phiShip      Int?
   thoiGian     String?        @db.VarChar(255)
   user_id      Int?
-  address_id   Int?
   createdAt    DateTime?      @default(now()) @db.Timestamp(0)
+  address      String?        @db.VarChar(255)
   User         User?          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "Order_ibfk_1")
-  Address      Address?       @relation(fields: [address_id], references: [address_id], onDelete: Cascade, onUpdate: NoAction, map: "Order_ibfk_2")
   OrderProduct OrderProduct[]
 
-  @@index([address_id], map: "address_id")
   @@index([user_id], map: "user_id")
 }
 
@@ -68,4 +58,29 @@ model OrderProduct {
 
   @@unique([products_id, order_id], map: "products_id")
   @@index([order_id], map: "order_id")
+}
+
+model bank_accounts {
+  id             Int       @id @default(autoincrement())
+  account_number String    @db.VarChar(20)
+  account_name   String    @db.VarChar(100)
+  bank_name      String    @db.VarChar(100)
+  content        String?   @db.VarChar(255)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.Timestamp(0)
+  money          Int?      @default(0)
+}
+
+model ProductComment {
+  comment_id    Int       @id @default(autoincrement())
+  user_id       Int
+  product_id    Int
+  user_fullname String    @db.VarChar(255)
+  content       String?   @db.VarChar(255)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  User          User      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "ProductComment_ibfk_1")
+  Product       Product   @relation(fields: [product_id], references: [products_id], onDelete: Cascade, onUpdate: NoAction, map: "ProductComment_ibfk_2")
+
+  @@index([product_id], map: "product_id")
+  @@index([user_id], map: "user_id")
 }

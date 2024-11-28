@@ -6,6 +6,7 @@ import axios from 'axios';
 
 @Injectable()
 export class OrderService {
+
   prisma = new PrismaClient();
   private driverLatitude: number = 10.88072665583552; // Tọa độ ban đầu của tài xế
   private driverLongitude: number = 106.78459883974683; // Tọa độ ban đầu của tài xế
@@ -76,15 +77,6 @@ export class OrderService {
               user_phone: true,
             },
           },
-          Address: {
-            select: {
-              soNha: true,
-              duong: true,
-              phuong: true,
-              huyen: true,
-              tinh: true,
-            },
-          },
           OrderProduct: {
             select: {
               quantity: true,
@@ -105,6 +97,40 @@ export class OrderService {
       throw new Error(`Error getting users: ${err}`);
     }
   }
+  async getListOrderByUserID(userId: number) {
+    try {
+      const data = await this.prisma.order.findMany({
+        where: {
+          user_id: userId,
+        },
+        include: {
+          User: {
+            select: {
+              user_fullname: true,
+              user_phone: true,
+            },
+          },
+          OrderProduct: {
+            select: {
+              quantity: true,
+              Product: {
+                select: {
+                  products_name: true,
+                  products_price: true,
+                  products_image: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return { data };
+    } catch (err) {
+      throw new Error(`Error getting orders by userId: ${err}`);
+    }
+  }
+
   async getOrderById(orderId: number) {
     try {
       const data = await this.prisma.order.findUnique({
@@ -116,15 +142,6 @@ export class OrderService {
             select: {
               user_fullname: true,
               user_phone: true,
-            },
-          },
-          Address: {
-            select: {
-              soNha: true,
-              duong: true,
-              phuong: true,
-              huyen: true,
-              tinh: true,
             },
           },
           OrderProduct: {
@@ -152,18 +169,13 @@ export class OrderService {
     }
   }
   async createOrder(body: CreateOrderDto) {
-    const { user_id, address_id, orderProducts, phiShip = 15000 } = body;
-
-    const address = await this.prisma.address.findUnique({
-      where: { address_id },
-    });
+    const { user_id, address, orderProducts, phiShip = 15000 } = body;
     if (!address) {
       throw new Error('Không tìm thấy địa chỉ');
     }
     // Tạo địa chỉ đầy đủ từ các trường của bảng Address
-    const fullAddress = `${address.soNha || ''} ${address.duong || ''} ${address.phuong || ''} ${address.huyen || ''} ${address.tinh || ''}`.trim();
     // Lấy tọa độ từ địa chỉ
-    const { latitude, longitude } = await this.getCoordinates(fullAddress);
+    const { latitude, longitude } = await this.getCoordinates(address);
 
     // Tính thời gian di chuyển từ vị trí của bạn đến địa chỉ đích
     const estimatedTime = await this.getTravelTime(this.driverLatitude, this.driverLongitude, latitude, longitude);
@@ -182,7 +194,7 @@ export class OrderService {
     const order = await this.prisma.order.create({
       data: {
         user_id,
-        address_id,
+        address,
         status: 'Đang xử lí',
         phiShip,
         thoiGian: estimatedTime,
@@ -198,7 +210,7 @@ export class OrderService {
     return order;
   }
   async updateOrder(id: number, body: UpdateOrderDto) {
-    const { status, address_id, orderProducts } = body;
+    const { status, address, orderProducts } = body;
 
     const existingOrder = await this.prisma.order.findUnique({
       where: { order_id: id },
@@ -212,13 +224,8 @@ export class OrderService {
     let updatedTime = existingOrder.thoiGian;
 
     if (status === 'Đang giao hàng') {
-      const address = await this.prisma.address.findUnique({
-        where: { address_id },
-      });
-
       if (address) {
-        const fullAddress = `${address.soNha || ''} ${address.duong || ''} ${address.phuong || ''} ${address.huyen || ''} ${address.tinh || ''}`.trim();
-        const { latitude, longitude } = await this.getCoordinates(fullAddress);
+        const { latitude, longitude } = await this.getCoordinates(address);
 
         // Tính toán và bắt đầu di chuyển tài xế
         this.startSimulatedDriverMovement(id, latitude, longitude);
@@ -246,7 +253,7 @@ export class OrderService {
       where: { order_id: id },
       data: {
         status,
-        address_id,
+        address,
         thoiGian: updatedTime,
         totalAmount,
         OrderProduct: orderProducts

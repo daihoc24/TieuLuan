@@ -23,11 +23,6 @@ export class signupDTO {
 
     @ApiProperty()
     @IsNotEmpty()
-    address: {
-        soNha: string;
-        duong: string;
-        phuong: string;
-        huyen: string;
-        tinh: string;
-    };
+    user_address: string;
+
 }

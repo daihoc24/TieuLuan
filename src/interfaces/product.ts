@@ -20,13 +20,24 @@ export interface dataProduct {
   comments: any[]; // Use a more specific type if you know the structure of comments
 }
 export interface listProduct {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  type: string;
-  comments: any[];
-
+  products_id: number;
+  products_name: string;
+  products_price: number;
+  products_image: string;
+  products_type: string;
 }
-export type ProductResponse = listProduct[];
+export interface addComment {
+  user_id: number;
+  user_fullname: string;
+  content: string;
+}
+export interface Comment {
+  comment_id: number;
+  user_id: number;
+  product_id: number;
+  user_fullname: string;
+  content: string;
+  created_at: string;
+}
+export type ProductResponse = HttpResponse<listProduct[]>;
 

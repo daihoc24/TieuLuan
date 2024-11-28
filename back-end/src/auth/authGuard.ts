@@ -49,11 +49,6 @@ export class JwtAuthGuard implements CanActivate {
         if (!user) {
           throw new UnauthorizedException('User not found');
         }
-
-        if (user.user_role !== 'admin') {
-          throw new UnauthorizedException('Access denied');
-        }
-
         // Gắn thông tin user vào request
         request.user = { ...decoded, role: user.user_role };
         return true;

@@ -7,7 +7,7 @@ const withAuthGuard = (Component: React.ComponentType) => {
       const navigate = useNavigate();
   
       useEffect(() => {
-        const user = localStorage.getItem("user") || sessionStorage.getItem("user");
+        const user = localStorage.getItem("USER_INFO") 
   
         if (!user) {
           notification.warning({

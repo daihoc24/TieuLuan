@@ -14,6 +14,7 @@ import Home from "../pages/Home/Home";
 import OrderHistoryPage from "../pages/history/OrderHistory";
 import withAuthGuard from "../guards/AuthGuard";
 import AdminLayout from "../layout/AdminLayout/AdminLayout";
+import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 
 export default function Router() {
   const [isCartVisible, setIsCartVisible] = useState(false);
@@ -38,6 +39,8 @@ export default function Router() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
         <Route
           path="/cart"
           element={React.createElement(withAuthGuard(Cart))}
@@ -47,7 +50,7 @@ export default function Router() {
           element={React.createElement(withAuthGuard(Order))}
         />
         <Route
-          path="/orderDetail"
+          path="/orderDetail/:orderId"
           element={React.createElement(withAuthGuard(OrderDetails))}
         />
         <Route
@@ -63,9 +66,8 @@ export default function Router() {
           element={React.createElement(withAuthGuard(Product))}
         />
       </Route>
-      <Route path="/admin" element={<AdminLayout />}>
 
-      </Route>
+      <Route path="/admin" element={<AdminLayout />}></Route>
     </Routes>
   );
 }

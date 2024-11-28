@@ -1,35 +1,61 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, UnauthorizedException, Res } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/authGuard';
+import { getData } from 'src/product/interface';
+import { Response } from 'express';
 
 ApiTags('Order')
 @Controller('api/Order') export class OrderController {
   constructor(private readonly orderService: OrderService) { }
   @Get('/getListOrder')
-  getListOrder() {
-    return this.orderService.getListOrder();
+  async getListOrder(@Res() res: Response) {
+    res.send({
+      message: 'Xử lí thành công!',
+      content: ((await this.orderService.getListOrder()).data)
+    });
+  }
+  @Get('/getListOrderByUserID/:userId')
+  async getListOrderByUserID(@Param('userId') userId: number, @Res() res: Response) {
+    res.send({
+      message: 'Xử lí thành công!',
+      content: ((await this.orderService.getListOrderByUserID(+userId)).data)
+    });
   }
   @Get('/getOrderById/:orderId')
-  getOrderById(@Param('orderId') orderId: number) {
-    return this.orderService.getOrderById(+orderId);
+  async getOrderById(@Param('orderId') orderId: number, @Res() res: Response) {
+    res.send({
+      message: 'Xử lí thành công!',
+      content: ((await this.orderService.getOrderById(+orderId)).data)
+    });
   }
   @Post('/createOrder')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   createOrder(@Body() CreateOrderDto: CreateOrderDto,
   ) {
     return this.orderService.createOrder(CreateOrderDto);
   }
   @Put('/UpdateOrder/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   updateOrder(
     @Param('id') id: string,
-    @Body() body: UpdateOrderDto,
+    @Body() body: UpdateOrderDto, @Req() req: getData
   ) {
-    return this.orderService.updateOrder(+id, body);
+    if (req.user.role === 'admin') {
+      return this.orderService.updateOrder(+id, body);
+    }
+    throw new UnauthorizedException('Bạn không có quyền truy cập!');
   }
   @Delete('/DeleteOrder/:id')
-  deleteOrder(@Param('id') id: string
+  deleteOrder(@Param('id') id: string, @Req() req: getData
   ) {
-    return this.orderService.deleteOrder(+id);
+    if (req.user.role === 'admin') {
+      return this.orderService.deleteOrder(+id);
+    }
+    throw new UnauthorizedException('Bạn không có quyền truy cập!');
   }
 }

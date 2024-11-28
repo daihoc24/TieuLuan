@@ -13,13 +13,15 @@ import { Avatar, Form, Button, List, Input, message, Spin } from "antd";
 import moment from "moment";
 
 import { useCart } from "./CartContext";
-import { Comment, listProduct } from "../../interfaces/product";
+import { addComment, Comment, listProduct } from "../../interfaces/product";
 import { HeartOutlined, UndoOutlined, UserOutlined } from "@ant-design/icons";
 import { productService } from "../../services/product";
+import { jwtDecode } from "jwt-decode";
+import { userService } from "../../services/user";
 
 export default function ProductDetail() {
   const [data, setData] = useState<listProduct | null>(null);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [others, setOthers] = useState<listProduct[]>([]);
   const [newCommentText, setNewCommentText] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
@@ -33,14 +35,35 @@ export default function ProductDetail() {
   const [loadingOthers, setLoadingOthers] = useState<boolean>(true);
   const [loadingProduct, setLoadingProduct] = useState<boolean>(true);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const author = user.fullname || "Unknown";
+  const [author, setAuthor] = useState<string>("Unknown");
   const formatPrice = (price: number): string => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
   };
-
+  const storedUser = localStorage.getItem("USER_INFO") || "{}";
+  let userId = null;
+  try {
+    // Kiểm tra xem token có hợp lệ không trước khi giải mã
+    const decoded: any = jwtDecode(storedUser);
+    userId = decoded?.data?.id;
+  } catch (error) {
+    console.error("Token không hợp lệ:", error);
+  }
+  useEffect(() => {
+    if (userId) {
+      const userInfor = async () => {
+        try {
+          const response = await userService.getUserById(userId);
+          setAuthor(response.data.content.user_fullname);
+        } catch (error) {
+          console.error("Failed to fetch comments:", error);
+        }
+      };
+      userInfor();
+    }
+  }, [productId]);
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
@@ -48,7 +71,7 @@ export default function ProductDetail() {
         const result = await productService.fetchProductDetailApi(
           Number(productId)
         );
-        setData(result.data);
+        setData(result.data.content);
       } catch (error) {
         console.error("Error fetching product details:", error);
       } finally {
@@ -60,9 +83,9 @@ export default function ProductDetail() {
       try {
         setLoadingOthers(true);
         const result = await productService.fetchProductApi(); // Adjust this method
-        const allProducts = result.data;
+        const allProducts = result.data.content;
         const otherProducts = allProducts.filter(
-          (product) => product.id !== Number(productId)
+          (product) => product.products_id !== Number(productId)
         );
         setOthers(otherProducts.slice(0, 5)); // Show only 5 other products
       } catch (error) {
@@ -76,55 +99,34 @@ export default function ProductDetail() {
     fetchAllProducts();
   }, [productId]);
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
-  useEffect(() => {
-    if (!initialized) {
-      const storedComments = sessionStorage.getItem(`comments-${productId}`);
-      if (storedComments) {
-        setComments(JSON.parse(storedComments));
-      }
-      setInitialized(true);
-    }
-  }, [productId, initialized]);
+  // useEffect(() => {
+  //   const adjustMessageZIndex = () => {
+  //     const messageContainer = document.querySelector(
+  //       ".ant-message"
+  //     ) as HTMLElement;
+  //     if (messageContainer) {
+  //       messageContainer.style.zIndex = "100001";
+  //       messageContainer.style.position = "fixed";
+  //     }
+  //   };
 
-  useEffect(() => {
-    const initialLikedComments: { [key: number]: boolean } = {};
-    comments.forEach((comment: any) => {
-      initialLikedComments[comment.id] = false; // Default to not liked
-    });
-    setLikedComments(initialLikedComments);
-  }, [comments]);
-
-  useEffect(() => {
-    const adjustMessageZIndex = () => {
-      const messageContainer = document.querySelector(
-        ".ant-message"
-      ) as HTMLElement;
-      if (messageContainer) {
-        messageContainer.style.zIndex = "100001";
-        messageContainer.style.position = "fixed";
-      }
-    };
-
-    message.config({
-      top: 100,
-      getContainer: () => {
-        adjustMessageZIndex();
-        return document.body;
-      },
-    });
-  }, []);
+  //   message.config({
+  //     top: 100,
+  //     getContainer: () => {
+  //       adjustMessageZIndex();
+  //       return document.body;
+  //     },
+  //   });
+  // }, []);
 
   const handleAddToCart = () => {
     if (data) {
       const productToAdd = {
-        id: data.id.toString(),
-        name: data.name,
-        price: data.price,
+        id: data.products_id.toString(),
+        name: data.products_name,
+        price: data.products_price,
         quantity: amount,
-        image: data.image,
+        image: data.products_image,
       };
       addToCart(productToAdd);
       message.success("Thêm sản phẩm vào giỏ hàng thành công");
@@ -134,34 +136,62 @@ export default function ProductDetail() {
   const handleBuyNow = () => {
     if (data) {
       const productToAdd = {
-        id: data.id.toString(),
-        name: data.name,
-        price: data.price,
+        id: data.products_id.toString(),
+        name: data.products_name,
+        price: data.products_price,
         quantity: amount,
-        image: data.image,
+        image: data.products_image,
       };
       addToCart(productToAdd);
       window.location.href = `/order`;
     }
   };
-
-  const handleAddComment = () => {
-    if (newCommentText.trim() === "") return;
-    const newComment = {
-      id: comments.length + 1,
-      text: newCommentText,
-      author: author,
-      createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+  useEffect(() => {
+    const fetchComment = async () => {
+      if (productId) {
+        try {
+          const response = await productService.getListCommentByProductId(
+            Number(productId)
+          );
+          setComments(response.data.content);
+        } catch (error) {
+          console.error("Failed to fetch comments:", error);
+        }
+      }
     };
-    const updatedComments = [...comments, newComment];
-    setComments(updatedComments);
-    sessionStorage.setItem(
-      `comments-${productId}`,
-      JSON.stringify(updatedComments)
-    );
-    setNewCommentText(""); // Clear input after adding comment
-  };
 
+    fetchComment();
+  }, [productId, comments]);
+
+  useEffect(() => {
+    const initialLikedComments: { [key: number]: boolean } = {};
+    comments.forEach((comment) => {
+      initialLikedComments[comment.id] = false; // Mặc định chưa thích
+    });
+    setLikedComments(initialLikedComments);
+  }, [comments]);
+  const handleAddComment = async () => {
+    if (newCommentText.trim() === "") return;
+
+    const newComment: addComment = {
+      user_id: userId, // user_id từ localStorage
+      user_fullname: author, // Tên người bình luận (author)
+      content: newCommentText, // Nội dung bình luận
+    };
+
+    try {
+      const response = await productService.addComment(
+        Number(productId),
+        newComment
+      );
+      setTimeout(() => {
+        setComments((prevComments) => [...prevComments, response.data.content]);
+        setNewCommentText("");
+      }, 500);
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
+  };
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setNewCommentText(e.target.value);
   };
@@ -173,49 +203,62 @@ export default function ProductDetail() {
     }));
   };
 
-  const handleRevokeClick = (commentId: number) => {
-    const updatedComments = comments.filter(
-      (comment) => comment.id !== commentId
-    );
-    setComments(updatedComments);
-    sessionStorage.setItem(
-      `comments-${productId}`,
-      JSON.stringify(updatedComments)
-    );
+  const handleRevokeClick = async (commentId: number) => {
+    try {
+      const response = await productService.deleteCommentById(
+        Number(commentId),
+        userId
+      );
+      if (response.status === 200) {
+        const updatedComments = await productService.getListCommentByProductId(
+          Number(productId)
+        );
+        setComments(updatedComments.data.content);
+      } else {
+        console.error("Failed to revoke comment:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
   };
+  useEffect(() => {
+    console.log("Updated comments state:", comments);
+  }, [comments]);
   const handleProductClick = (productId: number) => {
     window.location.href = `/product-detail/${productId}`;
   };
   const renderOthers = (others: listProduct[]) => {
     return others.map((element) => (
-      <div key={element.id} className="px-5 py-5 mx-5 others">
+      <div key={element.products_id} className="px-5 py-5 mx-3 others">
         <div
-          onClick={() => handleProductClick(element.id)}
+          onClick={() => handleProductClick(element.products_id)}
           style={{ cursor: "pointer" }}
         >
           <div>
             <img
-              src={element.image}
-              alt={element.name}
+              src={element.products_image}
+              alt={element.products_name}
               className="w-full h-auto"
             />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-color1 py-2">
-              {element.name}
+              {element.products_name}
             </h3>
-            <p className="py-1 font-semibold">{formatPrice(element.price)}</p>
+            <p className="py-1 font-semibold">
+              {formatPrice(element.products_price)}
+            </p>
           </div>
         </div>
       </div>
     ));
   };
 
-  const renderComments = (comments: any[]) => (
+  const renderComments = (comments: Comment[]) => (
     <ul className="px-20">
       {comments.map((comment) => (
         <li
-          key={comment.id}
+          key={comment.comment_id}
           style={{
             marginBottom: 20,
             padding: 10,
@@ -245,46 +288,48 @@ export default function ProductDetail() {
                   color: "#385898",
                 }}
               >
-                {comment.author}
+                {comment.user_fullname}
               </p>
               <p style={{ fontSize: 12, color: "#999", marginBottom: 0 }}>
-                {moment(comment.createdAt).fromNow()}
+                {moment(comment.created_at).fromNow()}
               </p>
             </div>
           </div>
           <div className="line_1" style={{ marginBottom: 10 }}></div>
           <p style={{ marginBottom: 30, fontSize: 20, marginLeft: 20 }}>
-            {comment.text}
+            {comment.content}
           </p>
           <div className="line_1" style={{ marginBottom: 10 }}></div>
           <div className="flex items-center mx-3 py-2">
             <div
               className="flex items-center mr-4"
               style={{ cursor: "pointer" }}
-              onClick={() => handleLikeClick(comment.id)}
+              onClick={() => handleLikeClick(comment.comment_id)}
             >
               <HeartOutlined
                 style={{
-                  color: likedComments[comment.id] ? "red" : "inherit",
+                  color: likedComments[comment.comment_id] ? "red" : "inherit",
                 }}
               />
               <span
                 style={{
                   marginLeft: 5,
-                  color: likedComments[comment.id] ? "red" : "inherit",
+                  color: likedComments[comment.comment_id] ? "red" : "inherit",
                 }}
               >
                 Thích
               </span>
             </div>
-            <div
-              className="flex items-center ml-4"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleRevokeClick(comment.id)}
-            >
-              <UndoOutlined />
-              <span style={{ marginLeft: 5 }}>Thu hồi</span>
-            </div>
+            {comment.user_id === userId && (
+              <div
+                className="flex items-center ml-4"
+                style={{ cursor: "pointer" }}
+                onClick={() => handleRevokeClick(comment.comment_id)}
+              >
+                <UndoOutlined />
+                <span style={{ marginLeft: 5 }}>Thu hồi</span>
+              </div>
+            )}
           </div>
         </li>
       ))}
@@ -314,7 +359,10 @@ export default function ProductDetail() {
             style={{ width: 1280, background: "#fff" }}
           >
             <div className="product_img">
-              <img src={data.image} style={{ width: 500, height: 530 }} />
+              <img
+                src={data.products_image}
+                style={{ width: 500, height: 530 }}
+              />
               <div className="flex flex-wrap justify-center items-center py-10">
                 <button className="px-2 py-1 flex justify-center items-center font-semibold text-sm text-gray-700">
                   <ShareIcon />
@@ -330,7 +378,7 @@ export default function ProductDetail() {
               <p className="mb-2">
                 <button className="mr-3"></button>
                 <span className="font-semibold text-xl sm:text-3xl tracking-widest leading-relaxed text-gray-900">
-                  {data.name}
+                  {data.products_name}
                 </span>
               </p>
 
@@ -341,7 +389,7 @@ export default function ProductDetail() {
               {/*</div>*/}
               <div className="py-3">
                 <span className="text-lg font-semibold tracking-widest mx-2 product_price">
-                  {formatPrice(data.price)}
+                  {formatPrice(data.products_price)}
                 </span>
               </div>
               <div

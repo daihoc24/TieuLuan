@@ -21,10 +21,9 @@ export class CreateOrderDto {
   user_id: number;
 
   @ApiProperty()
-  @IsInt()
   @IsNotEmpty()
-  address_id: number; 
-
+  address: string;
+  
   @ApiProperty({ type: [OrderProductDto] })
   @IsArray()
   @Type(() => OrderProductDto)

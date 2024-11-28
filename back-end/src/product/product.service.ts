@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from '@prisma/client';
+import { CreateCommentDto } from './dto/create-comment.dto';
 @Injectable()
 export class ProductService {
   prisma = new PrismaClient();
@@ -13,8 +14,7 @@ export class ProductService {
           products_name: true,
           products_image: true,
           products_price: true,
-          products_comments: true,
-          products_type:true,
+          products_type: true,
         },
       });
       return { product };
@@ -36,6 +36,36 @@ export class ProductService {
       throw new Error("Can't find productID!");
     }
   }
+  async getListCommentByProductId(productId: number) {
+    try {
+      const comments = await this.prisma.productComment.findMany({
+        where: { product_id: productId },
+        orderBy: { created_at: 'desc' },  // Sắp xếp theo ngày tạo (mới nhất lên đầu)
+      });
+
+      return comments;
+    } catch (error) {
+      throw new Error(`Error fetching comments: ${error}`);
+    }
+  }
+
+  async addComment(productId: number, body: CreateCommentDto) {
+    try {
+      const comment = await this.prisma.productComment.create({
+        data: {
+          user_id: body.user_id,
+          user_fullname: body.user_fullname,
+          content: body.content,
+          product_id: productId,
+        }
+      });
+
+      return { comment };
+    } catch (err) {
+      throw new Error(`Error adding comment: ${err}`);
+    }
+  }
+
   async addProduct(body: CreateProductDto) {
     try {
       const product = await this.prisma.product.create({
@@ -56,20 +86,27 @@ export class ProductService {
       if (!data) {
         throw new Error(`Product with id ${id} not found`);
       }
+
+      // Xử lý đường dẫn ảnh: chỉ lấy tên ảnh từ đường dẫn file
+      const imagePath = image.replace(process.cwd() + '\\public\\img\\', ''); // Loại bỏ phần đường dẫn tuyệt đối
+      const publicUrl = `http://localhost:8080/public/img/${imagePath}`;
+
       const upload = await this.prisma.product.update({
         where: {
           products_id: id,
         },
         data: {
-          products_image: image,
+          products_image: publicUrl, // Lưu đường dẫn ảnh tương đối
         },
       });
 
       return { data: upload };
     } catch (err) {
-      throw new Error(`Error creating user: ${err}`);
+      throw new Error(`Error uploading image: ${err.message}`);
     }
   }
+
+
   async updateProduct(id: number, body: UpdateProductDto) {
     try {
       const productExists = await this.prisma.product.findUnique({
@@ -102,4 +139,33 @@ export class ProductService {
       };
     } catch { }
   }
+  async deleteCommentById(commentId: number, userId: number) {
+  try {
+    // Kiểm tra nếu comment tồn tại và kiểm tra xem user_id có phải là của comment này không
+    const comment = await this.prisma.productComment.findUnique({
+      where: {
+        comment_id: commentId,
+      },
+    });
+
+    // Nếu không tìm thấy comment hoặc comment không thuộc về user này
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+    if (comment.user_id !== userId) {
+      throw new Error("You are not authorized to delete this comment");
+    }
+
+    // Xóa comment
+    const deletedComment = await this.prisma.productComment.delete({
+      where: {
+        comment_id: commentId,
+      },
+    });
+
+    return { message: "Comment deleted successfully", deletedComment };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
 }

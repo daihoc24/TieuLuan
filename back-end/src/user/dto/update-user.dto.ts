@@ -24,6 +24,7 @@ export class UpdateUserDto {
 
   @ApiProperty()
   @IsOptional()
+  @IsNotEmpty()
   user_birthDate: Date;
 
   @ApiProperty()
@@ -33,11 +34,7 @@ export class UpdateUserDto {
 
   @ApiProperty()
   @IsOptional()
-  address: {
-    soNha?: string;   // Các trường có thể không có (optional)
-    duong?: string;
-    phuong?: string;
-    huyen?: string;
-    tinh?: string;
-  };
+  @IsNotEmpty()
+  user_address: string;
+
 }

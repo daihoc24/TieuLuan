@@ -1,96 +1,136 @@
 import "./login.scss";
-import React from 'react';
-import axios from 'axios';
-import {Button, Checkbox, CheckboxProps, Form, Input, message} from 'antd';
-import {NavLink, useNavigate} from 'react-router-dom';
-
-interface LoginFormValues {
-    username: string;
-    password: string;
-    rememberMe: boolean;
-}
+import React from "react";
+import axios from "axios";
+import { Button, Checkbox, CheckboxProps, Input, message } from "antd";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import * as Yup from "yup";
+import { UserLogin } from "../../interfaces/user";
+import { userService } from "../../services/user";
+import { userActions } from "../../reducer/userReducer";
+import { Form, Field, ErrorMessage, Formik } from "formik";
+import Swal from "sweetalert2";
 
 const Login: React.FC = () => {
-    const navigate = useNavigate(); // Hook để chuyển hướng
-    const onFinish = async (values: LoginFormValues) => {
-        console.log('Input:', values);
-        try {
-            const response = await axios.get('http://localhost:3001/users', {
-                params: {
-                    username: values.username,
-                    password: values.password
-                }
-            });
-            const user = response.data.find((user: any) => user.username === values.username && user.password === values.password);
-            if (user) {
-                console.log('Login successful:', user);
-                message.success("Đăng nhập thành công!")
-                // Lưu thông tin người dùng vào localStorage hoặc sessionStorage tùy thuộc vào trường remember
-                localStorage.setItem('user', JSON.stringify(user));
-                // Chuyển hướng đến trang chính
-                navigate('/');
-            } else {
-                console.error('Invalid username or password');
-                message.error("Sai tài khoản hoặc mật khẩu!");
-                // Xử lý khi đăng nhập thất bại (hiển thị thông báo lỗi, v.v.)
-            }
-        } catch (error) {
-            console.error('There was an error!', error);
-            message.error("Lỗi hệ thống");
-            // Xử lý khi đăng nhập thất bại (hiển thị thông báo lỗi, v.v.)
-        }
-    };
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const LoginSchema = Yup.object().shape({
+    user_email: Yup.string().required("(*) Email không được để trống"),
+    user_password: Yup.string().required("(*) Mật khẩu không được để trống"),
+  });
+  const handleSubmit = async (values: UserLogin, { resetForm }: any) => {
+    try {
+      const result = await userService.loginUser(values);
 
-    const onFinishFailed = (errorInfo: any) => {
-        console.log('Failed:', errorInfo);
-    };
+      navigate("/");
+      console.log(result.data.content);
 
-    return (
-        <Form
-            className="mx-auto"
-            name="basic"
-            labelCol={{span: 5}}
-            wrapperCol={{span: 16}}
-            style={{maxWidth: '550px', marginTop: '7rem', paddingTop: '40px'}}
-            initialValues={{remember: true}}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
-            autoComplete="off"
-        >
-            <Form.Item
-                label="Tên đăng nhập"
-                name="username"
-                rules={[{required: true, message: 'Hãy điền tên đăng nhập'}]}
+      dispatch(userActions.setUserInfo(result.data.content));
+
+      localStorage.setItem("USER_INFO", JSON.stringify(result.data.content));
+
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Đăng nhập thành công",
+      });
+
+      resetForm();
+    } catch (error: any) {
+      resetForm();
+      Swal.fire({
+        icon: "error",
+        title: `Error!`,
+        text: "Xin hãy thử lại",
+      });
+    }
+  };
+  return (
+    <Formik
+      initialValues={{
+        user_email: "",
+        user_password: "",
+      }}
+      validationSchema={LoginSchema}
+      onSubmit={handleSubmit}
+    >
+      <Form className="form-lg">
+        <div className="relative mb-4">
+          <div className="font-semibold text-3xl text-blue-800 text-center">
+            Đăng nhập
+          </div>
+        </div>
+        <div style={{ width: "30%", paddingTop: "40px", margin: "auto" }}>
+          <div className="mb-2">
+            <label
+              htmlFor="user_email"
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
             >
-                <Input/>
-            </Form.Item>
-
-            <Form.Item
-                label="Mật khẩu"
-                name="password"
-                rules={[{required: true, message: 'Hãy điền mật khẩu'}]}
+              Email
+            </label>
+            <Field
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              name="user_email"
+              type="text"
+              placeholder="Email"
+            />
+            <span></span>
+            <ErrorMessage
+              name="user_email"
+              component="label"
+              className="form-label form-label-login text-danger"
+            />
+          </div>
+          <div className="mb-6">
+            <label
+              htmlFor="user_password"
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
             >
-                <Input.Password/>
-            </Form.Item>
-
-            <Form.Item
-                name="remember"
-                valuePropName=""
-                wrapperCol={{offset: 8, span: 16}}
+              Mật Khẩu
+            </label>
+            <Field
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              name="user_password"
+              type="password"
+              placeholder="Mật khẩu"
+            />
+            <span></span>
+            <ErrorMessage
+              name="user_password"
+              component="label"
+              className="form-label form-label-login text-danger"
+            />
+          </div>
+          <div className="grid grid-cols-2 items-center mb-6">
+            <Link
+              to="/forgot-password"
+              className="text-rose-700 hover:text-rose-500 hover:underline underline-offset-4 tracking-wider duration-200 active"
             >
-                <Checkbox name="rememberMe">Lưu đăng nhập</Checkbox>
-                <NavLink className="register" to="/register">
-                    Đăng kí
-                </NavLink>
-            </Form.Item>
+              Quên mật khẩu?
+            </Link>
 
-            <Form.Item wrapperCol={{offset: 8, span: 16}}>
-                <Button className={"btn"} type="primary" htmlType="submit">
-                    Đăng nhập
-                </Button>
-            </Form.Item>
-        </Form>
-    );
+            <button
+              type="submit"
+              className="text-white focus:outline-none focus:ring-4  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 w-full bg-red-500 hover:bg-red-800 duration-300"
+            >
+              Đăng nhập
+            </button>
+          </div>
+          <div className="text-center">
+            <p>
+              Chưa có tài khoản
+              <a
+                className="ml-2 text-rose-700 hover:text-rose-500 hover:underline underline-offset-4 tracking-wider duration-200"
+                href="/register"
+              >
+                Đăng ký ngay
+              </a>
+            </p>
+          </div>
+        </div>
+      </Form>
+    </Formik>
+  );
 };
 
 export default Login;

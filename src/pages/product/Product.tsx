@@ -23,7 +23,7 @@ const Product: React.FC = () => {
       try {
         const result = await productService.fetchProductApi();
         console.log(result.data);
-        setProducts(result.data);
+        setProducts(result.data.content);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -50,12 +50,12 @@ const Product: React.FC = () => {
     setCurrentPage(1);
   };
   const filteredProducts = selectedType
-    ? products.filter((product) => product.type === selectedType)
+    ? products.filter((product) => product.products_type === selectedType)
     : products;
 
   const searchedProducts = searchTerm
     ? filteredProducts.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm)
+        product.products_name.toLowerCase().includes(searchTerm)
       )
     : filteredProducts;
 
@@ -65,7 +65,7 @@ const Product: React.FC = () => {
 
   // Lấy danh sách các loại sản phẩm để hiển thị trong select
   const productTypes: string[] = [];
-  const typeSet = new Set(products.map((product) => product.type));
+  const typeSet = new Set(products.map((product) => product.products_type));
   typeSet.forEach((type) => {
     productTypes.push(type);
   });
@@ -121,15 +121,15 @@ const Product: React.FC = () => {
           <div className="row">
             {currentProducts.map((product) => (
               <div
-                key={product.id}
+                key={product.products_id}
                 style={{ height: 490, paddingBottom: 20 }}
                 className="col-xl-3 col-md-4 col-sm-6"
               >
                 <div className="card" style={{ height: "100%" }}>
                   <img
-                    src={product.image}
+                    src={product.products_image}
                     className="card-img-top"
-                    alt={product.name}
+                    alt={product.products_name}
                   />
                   <div className="card-body">
                     <div style={{ height: 100 }}>
@@ -141,17 +141,17 @@ const Product: React.FC = () => {
                           paddingBottom: 10,
                         }}
                       >
-                        {product.name}
+                        {product.products_name}
                       </h5>
                       <h5
                         className="text-dark mb-0"
                         style={{ fontSize: 16, fontWeight: 600 }}
                       >
-                        {formatPrice(product.price)}
+                        {formatPrice(product.products_price)}
                       </h5>
                     </div>
                     <div className="d-flex justify-content-center align-items-center">
-                      <Link to={`/product-detail/${product.id}`}>
+                      <Link to={`/product-detail/${product.products_id}`}>
                         <Button className="detail">Xem chi tiết</Button>
                       </Link>
                     </div>
