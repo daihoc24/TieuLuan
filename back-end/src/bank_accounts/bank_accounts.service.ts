@@ -44,7 +44,10 @@ export class PaymentService {
           // Cập nhật trạng thái đơn hàng thành 'Đã thanh toán'
           const orderUpdate = await prisma.order.update({
             where: { order_id: orderID },
-            data: { status: 'Đã thanh toán' },
+            data: {
+              status: 'Đã thanh toán',
+              totalAmount: 0,
+            },
           });
 
           // Cập nhật quantitySold cho các sản phẩm trong đơn hàng

@@ -82,6 +82,7 @@ export class OrderService {
               quantity: true,
               Product: {
                 select: {
+                  products_id: true,
                   products_name: true,
                   products_price: true,
                   products_image: true,
@@ -115,6 +116,7 @@ export class OrderService {
               quantity: true,
               Product: {
                 select: {
+                  
                   products_name: true,
                   products_price: true,
                   products_image: true,
@@ -149,6 +151,7 @@ export class OrderService {
               quantity: true,
               Product: {
                 select: {
+                  products_id:true,
                   products_name: true,
                   products_price: true,
                   products_image: true,

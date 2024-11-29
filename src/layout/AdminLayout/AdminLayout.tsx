@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  AreaChartOutlined,
   DesktopOutlined,
   FileOutlined,
   OrderedListOutlined,
@@ -40,6 +41,9 @@ const AdminLayout: React.FC = () => {
           </Menu.Item>
           <Menu.Item key="3" icon={<OrderedListOutlined />}>
             <NavLink to="/admin/orders">Orders</NavLink>
+          </Menu.Item>
+          <Menu.Item key="4" icon={<AreaChartOutlined />}>
+            <NavLink to="/admin/statistics">Statistics</NavLink>
           </Menu.Item>
         </Menu>
       </Sider>

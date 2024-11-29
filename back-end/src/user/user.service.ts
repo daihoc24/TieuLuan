@@ -11,7 +11,7 @@ interface UpdatePasswordDto {
 export class UserService {
   prisma = new PrismaClient();
 
-  
+
   // Thông tin chọn lọc cho người dùng
   selectInfoUser = {
     user_fullname: true,
@@ -30,6 +30,7 @@ export class UserService {
           user_id: true,
           user_fullname: true,
           user_email: true,
+          user_password: true,
           user_phone: true,
           user_birthDate: true,
           user_role: true,
@@ -110,25 +111,25 @@ export class UserService {
   }
   async updatePassword(userId: number, body: UpdatePasswordDto) {
     const { currentPassword, newPassword } = body;
-  
+
     // Tìm người dùng trong cơ sở dữ liệu
     const user = await this.prisma.user.findUnique({
       where: { user_id: userId },
     });
-  
+
     if (!user) {
       throw new Error('User not found');
     }
-  
+
     // Kiểm tra mật khẩu hiện tại
     const isMatch = await bcrypt.compare(currentPassword, user.user_password);
     if (!isMatch) {
       throw new Error('Current password is incorrect');
     }
-  
+
     // Mã hóa mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-  
+
     // Cập nhật mật khẩu mới vào cơ sở dữ liệu
     const updatedUser = await this.prisma.user.update({
       where: { user_id: userId },
@@ -136,7 +137,7 @@ export class UserService {
         user_password: hashedPassword,
       },
     });
-  
+
     return updatedUser;
   }
   // Xóa người dùng
@@ -151,5 +152,17 @@ export class UserService {
     } catch (err) {
       throw new Error(`Error deleting user: ${err}`);
     }
+  }
+  async searchUserByName(name: string) {
+    try {
+      const data = await this.prisma.user.findMany({
+        where: {
+          user_fullname: {
+            contains: name,
+          },
+        },
+      });
+      return { data };
+    } catch { }
   }
 }

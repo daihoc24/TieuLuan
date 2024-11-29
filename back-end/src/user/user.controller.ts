@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Req, UnauthorizedException, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Req, UnauthorizedException, UseGuards, Res, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -84,5 +84,12 @@ interface UpdatePasswordDto {
       return this.userService.deleteUser(+userId);
     }
     throw new UnauthorizedException('Bạn không có quyền truy cập!');
+  }
+  @Get('/searchUserByName')
+  async searchUserByName(@Res() res: Response, @Query('name') name: string,) {
+    res.send({
+      message: 'Xử lí thành công!',
+      content: (await this.userService.searchUserByName(name)).data,
+    });
   }
 }

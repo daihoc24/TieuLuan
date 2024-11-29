@@ -4,6 +4,7 @@ import { useCart } from "../ProductDetail/CartContext";
 import { useNavigate } from "react-router-dom";
 import { orderService } from "../../services/order";
 import { jwtDecode } from "jwt-decode";
+import { OrderData } from "../../interfaces/order";
 
 message.config({
   top: 100,

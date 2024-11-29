@@ -14,6 +14,7 @@ export class ProductService {
           products_name: true,
           products_image: true,
           products_price: true,
+          quantitySold: true,
           products_type: true,
         },
       });
@@ -49,6 +50,18 @@ export class ProductService {
     }
   }
 
+  async searchProductByName(name: string) {
+    try {
+      const data = await this.prisma.product.findMany({
+        where: {
+          products_name: {
+            contains: name,
+          },
+        },
+      });
+      return { data };
+    } catch { }
+  }
   async addComment(productId: number, body: CreateCommentDto) {
     try {
       const comment = await this.prisma.productComment.create({
@@ -68,14 +81,21 @@ export class ProductService {
 
   async addProduct(body: CreateProductDto) {
     try {
+      const productData = {
+        ...body,
+        quantitySold: body.quantitySold ?? 0,
+      };
+
       const product = await this.prisma.product.create({
-        data: body
+        data: productData,
       });
+
       return { product };
     } catch (err) {
-      throw new Error(`Error creating user: ${err}`);
+      throw new Error(`Error creating product: ${err}`);
     }
   }
+
   async uploadProductImg(id: number, image: string) {
     try {
       const data = await this.prisma.product.findUnique({
@@ -140,32 +160,32 @@ export class ProductService {
     } catch { }
   }
   async deleteCommentById(commentId: number, userId: number) {
-  try {
-    // Kiểm tra nếu comment tồn tại và kiểm tra xem user_id có phải là của comment này không
-    const comment = await this.prisma.productComment.findUnique({
-      where: {
-        comment_id: commentId,
-      },
-    });
+    try {
+      // Kiểm tra nếu comment tồn tại và kiểm tra xem user_id có phải là của comment này không
+      const comment = await this.prisma.productComment.findUnique({
+        where: {
+          comment_id: commentId,
+        },
+      });
 
-    // Nếu không tìm thấy comment hoặc comment không thuộc về user này
-    if (!comment) {
-      throw new Error("Comment not found");
+      // Nếu không tìm thấy comment hoặc comment không thuộc về user này
+      if (!comment) {
+        throw new Error("Comment not found");
+      }
+      if (comment.user_id !== userId) {
+        throw new Error("You are not authorized to delete this comment");
+      }
+
+      // Xóa comment
+      const deletedComment = await this.prisma.productComment.delete({
+        where: {
+          comment_id: commentId,
+        },
+      });
+
+      return { message: "Comment deleted successfully", deletedComment };
+    } catch (error) {
+      throw new Error(error.message);
     }
-    if (comment.user_id !== userId) {
-      throw new Error("You are not authorized to delete this comment");
-    }
-
-    // Xóa comment
-    const deletedComment = await this.prisma.productComment.delete({
-      where: {
-        comment_id: commentId,
-      },
-    });
-
-    return { message: "Comment deleted successfully", deletedComment };
-  } catch (error) {
-    throw new Error(error.message);
   }
-}
 }

@@ -12,11 +12,18 @@ export default function Navbar() {
           </a>
         </li>
         <li>
+          <a href="/admin">
+            <span>Admin</span>
+            <i className="fa fa-chevron-down" />
+          </a>
+        </li>
+        <li>
           <a href="/product">
             <span>Thực đơn</span>
             <i className="fa fa-chevron-down" />
           </a>
         </li>
+        
         <li>
           <Link to={"order-history"}>
             <a href="#">

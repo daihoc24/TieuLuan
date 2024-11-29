@@ -13,8 +13,7 @@ export class CreateProductDto {
     @ApiProperty()
     @IsNotEmpty()
     products_type: string;
-
+    
     @ApiProperty()
-    @IsNotEmpty()
-    products_comments: string;
+    quantitySold: number = 0;  // Mặc định quantitySold = 0
 }

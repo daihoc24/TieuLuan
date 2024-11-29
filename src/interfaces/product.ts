@@ -24,12 +24,18 @@ export interface listProduct {
   products_name: string;
   products_price: number;
   products_image: string;
+  quantitySold:number;
   products_type: string;
 }
 export interface addComment {
   user_id: number;
   user_fullname: string;
   content: string;
+}
+export interface addProduct {
+  products_name: string;
+  products_price: number;
+  products_type: string;
 }
 export interface Comment {
   comment_id: number;

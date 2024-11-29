@@ -51,6 +51,8 @@ ApiTags('Order')
     throw new UnauthorizedException('Bạn không có quyền truy cập!');
   }
   @Delete('/DeleteOrder/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   deleteOrder(@Param('id') id: string, @Req() req: getData
   ) {
     if (req.user.role === 'admin') {

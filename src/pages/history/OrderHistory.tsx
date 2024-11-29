@@ -59,6 +59,9 @@ const OrderHistoryPage: React.FC = () => {
   const handleViewDetails = (orderId: number) => {
     navigate(`/orderDetail/${orderId}`);
   };
+  const handleBankPayment = (orderId: number) => {
+    navigate(`/payment/${orderId}`);
+  };
 
   if (orders.length === 0) {
     return <div>Không có đơn hàng nào.</div>; // Hiển thị thông báo nếu không có đơn hàng
@@ -94,13 +97,13 @@ const OrderHistoryPage: React.FC = () => {
                     className="productImage"
                   />
                 ) : (
-                  <span>No Image</span> // Hiển thị thông báo nếu không có sản phẩm
+                  <span>No Image</span>
                 )}
               </td>
               <td>{order.status}</td>
               <td>{formatPrice(order.phiShip)}</td>
-              <td>{formatPrice(order.totalAmount)}</td>
               <td>{order.thoiGian}</td>
+              <td>{formatPrice(order.totalAmount)}</td>
               <td>
                 <button
                   className="button"
@@ -114,6 +117,20 @@ const OrderHistoryPage: React.FC = () => {
                   onClick={() => handleViewDetails(order.order_id)}
                 >
                   Xem chi tiết
+                </button>
+                <button
+                  className="button"
+                  style={{
+                    background: "green",
+                    width: "200px",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    color: "white",
+                    marginLeft: "20px",
+                  }}
+                  onClick={() => handleBankPayment(order.order_id)}
+                >
+                  Thanh toán ngân hàng
                 </button>
               </td>
             </tr>

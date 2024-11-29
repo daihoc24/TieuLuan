@@ -1,8 +1,26 @@
 import { AxiosResponse } from "axios";
 import { request } from "../config/api";
-import { UpdatePasswordDto, UserLogin, UserSignup } from "../interfaces/user";
+import { addUser, UpdatePasswordDto, updateUser, UserLogin, UserSignup } from "../interfaces/user";
 
 class UserService {
+  getListUser() {
+    return request({
+      url: "/User/getListUser",
+      method: "GET",
+    });
+  }
+  deleteUser(userId: number) {
+    return request({
+      url: `/User/DeleteUser/${userId}`,
+      method: "DELETE",
+    });
+  }
+  searchUserByName(name: string) {
+    return request({
+      url: `/User/searchUserByName?name=${name}`,
+      method: "GET",
+    });
+  }
   loginUser(data: UserLogin) {
     return request({
       url: "/Auth/Login",
@@ -21,7 +39,7 @@ class UserService {
     return request({
       url: "/Auth/Verify",
       method: "POST",
-      data: {email, code},
+      data: { email, code },
     });
   }
   getUserById(userId: number | undefined): Promise<AxiosResponse<any>> {
@@ -65,6 +83,14 @@ class UserService {
       data: { email, newPassword },
     });
   }
+  creatUser(data:addUser) {
+    return request({
+      url: "/User/creatUser",
+      method: "POST",
+      data,
+    });
+  }
+  
 }
 
 export const userService: UserService = new UserService();

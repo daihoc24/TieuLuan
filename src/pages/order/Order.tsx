@@ -29,7 +29,7 @@ const Order: React.FC = () => {
 
   const onFinish = (values: any) => {
     handleFinish(values);
-    navigate("/order-history"); // Điều hướng đến trang chi tiết đơn hàng
+    navigate("/order-history");
   };
 
   const handleWardChange = (value: string) => {
@@ -125,15 +125,12 @@ const Order: React.FC = () => {
               {" "}
               Tổng tiền: {formatPrice(shippingInfo.phiShip + getTotalAmount())}
             </p>
-            <Form.Item
-              wrapperCol={{
-                xs: { span: 24, offset: 0 },
-                sm: { span: 16, offset: 8 },
-              }}
-            >
-              <Button className="submit" type="primary" htmlType="submit">
-                Xác nhận đơn hàng
-              </Button>
+            <Form.Item style={{ marginTop: "50px" }}>
+              <div style={{ display: "flex" }}>
+                <Button className="submit" type="primary" htmlType="submit">
+                  Xác nhận đơn hàng
+                </Button>
+              </div>
             </Form.Item>
           </Form>
           {/*<div style={{ position: "absolute", marginLeft: "-1300px", marginTop: "-535px" }}>*/}

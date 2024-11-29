@@ -37,6 +37,13 @@ export class ProductController {
       content: (await this.productService.getListCommentByProductId(+productId)),
     });
   }
+  @Get('/searchProductByName')
+  async searchProductByName(@Res() res: Response, @Query('name') name: string,) {
+    res.send({
+      message: 'Xử lí thành công!',
+      content: (await this.productService.searchProductByName(name)).data,
+    });
+  }
   @Post('/upload-productImg/:id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
