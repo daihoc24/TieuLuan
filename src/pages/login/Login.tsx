@@ -53,14 +53,15 @@ const Login: React.FC = () => {
       }}
       validationSchema={LoginSchema}
       onSubmit={handleSubmit}
+      
     >
       <Form className="form-lg">
-        <div className="relative mb-4">
-          <div className="font-semibold text-3xl text-blue-800 text-center">
+        <div className="relative mb-4" style={{marginTop:"100px"}}>
+          <div className="font-semibold text-3xl text-blue-800 text-center" style={{color:"rgb(239 38 56)"}}>
             Đăng nhập
           </div>
         </div>
-        <div style={{ width: "30%", paddingTop: "40px", margin: "auto" }}>
+        <div style={{ width: "30%", margin: "auto" }}>
           <div className="mb-2">
             <label
               htmlFor="user_email"

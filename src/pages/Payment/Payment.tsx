@@ -39,11 +39,11 @@ const Payment: React.FC = () => {
         title: "Thanh toán thành công!",
         text: result.data.message,
       });
-      if(result.data.message==="Số tiền thanh toán không đủ!"){
+      if(result.data.content.message==="Số tiền thanh toán không đủ!"){
         Swal.fire({
             icon: "error",
             title: "Thanh toán không thành công!",
-            text: result.data.message,
+            text: result.data.content.message,
           });
       }
 

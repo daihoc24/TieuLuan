@@ -29,7 +29,9 @@ const Order: React.FC = () => {
 
   const onFinish = (values: any) => {
     handleFinish(values);
-    navigate("/order-history");
+    setTimeout(() => {
+      navigate("/order-history");
+    }, 2000);
   };
 
   const handleWardChange = (value: string) => {

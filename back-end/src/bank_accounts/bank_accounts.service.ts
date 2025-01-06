@@ -46,7 +46,6 @@ export class PaymentService {
             where: { order_id: orderID },
             data: {
               status: 'Đã thanh toán',
-              totalAmount: 0,
             },
           });
 
