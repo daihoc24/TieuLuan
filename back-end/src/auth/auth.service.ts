@@ -4,6 +4,7 @@ import { signupDTO } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
+import * as nodemailer from 'nodemailer';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
-  
+
   prisma = new PrismaClient();
 
   async login(body: loginDTO) {
@@ -27,10 +28,15 @@ export class AuthService {
         throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
       }
       if (!user.is_verified) {
-        throw new UnauthorizedException('Tài khoản chưa được xác thực. Vui lòng kiểm tra email.');
+        throw new UnauthorizedException(
+          'Tài khoản chưa được xác thực. Vui lòng kiểm tra email.',
+        );
       }
 
-      const passCompare = await bcrypt.compare(user_password, user.user_password);
+      const passCompare = await bcrypt.compare(
+        user_password,
+        user.user_password,
+      );
 
       if (!passCompare) {
         throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
@@ -69,7 +75,9 @@ export class AuthService {
       };
     }
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
 
     // Tạo mới User
     const createdUser = await this.prisma.user.create({
@@ -82,13 +90,41 @@ export class AuthService {
       },
     });
 
-    return {
-      message: 'Đăng ký thành công. Vui lòng nhập mã xác thực để hoàn tất.',
-      verificationCode: verificationCode,
-      createdUser,
-    };
-  }
+    // Cấu hình nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail', // hoặc bất kỳ dịch vụ nào bạn sử dụng
+      auth: {
+        user: 'hoangquy4874@gmail.com',
+        pass: 'rcdtoewuhabuzpsq',
+      },
+    });
 
+    // Cấu hình email
+    const mailOptions = {
+      from: 'hoangquy4874@gmail.com',
+      to: userData.user_email,
+      subject: 'Xác thực tài khoản của bạn',
+      text: `Cảm ơn bạn đã đăng ký. Mã xác thực của bạn là: ${verificationCode}`,
+    };
+
+    // Gửi email
+    try {
+      await transporter.sendMail(mailOptions);
+      return {
+        message:
+          'Đăng ký thành công. Vui lòng kiểm tra email để lấy mã xác thực.',
+        createdUser,
+      };
+    } catch (error) {
+      console.error('Error sending email:', error);
+      return {
+        status: 500,
+        message:
+          'Đăng ký thành công nhưng không thể gửi email xác thực. Vui lòng thử lại.',
+        createdUser,
+      };
+    }
+  }
   async verifyAccount(email: string, code: string) {
     const user = await this.prisma.user.findFirst({
       where: { user_email: email },
@@ -130,7 +166,9 @@ export class AuthService {
       };
     }
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
 
     await this.prisma.user.update({
       where: { user_id: user.user_id },
@@ -141,7 +179,8 @@ export class AuthService {
     });
 
     return {
-      message: 'Mã xác thực đã được tạo. Vui lòng nhập mã xác thực để thay đổi mật khẩu.',
+      message:
+        'Mã xác thực đã được tạo. Vui lòng nhập mã xác thực để thay đổi mật khẩu.',
       verificationCode,
     };
   }

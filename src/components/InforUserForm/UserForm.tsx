@@ -46,14 +46,13 @@ const FillUserForm: React.FC<FillUserFormProps> = ({ user }) => {
       ...values,
     };
     try {
-      // Giả sử bạn muốn gọi updateUser từ userService để cập nhật thông tin người dùng
       const response = await userService.updateUser(userId, updatedData);
       console.log("Cập nhật thành công:", response.data);
+      window.location.reload();
     } catch (error) {
       console.error("Cập nhật thất bại:", error);
     }
   };
-
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit}>
       <Row gutter={16}>

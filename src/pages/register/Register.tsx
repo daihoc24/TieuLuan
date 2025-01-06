@@ -9,10 +9,25 @@ import { useNavigate } from "react-router-dom";
 const { Option } = Select;
 
 const Register: React.FC = () => {
+  interface Tinh {
+    id: string;
+    full_name: string;
+  }
+
+  interface Quan {
+    id: string;
+    full_name: string;
+  }
+
+  interface Phuong {
+    id: string;
+    full_name: string;
+  }
+
+  const [tinhData, setTinhData] = useState<Tinh[]>([]);
+  const [quanData, setQuanData] = useState<Quan[]>([]);
+  const [phuongData, setPhuongData] = useState<Phuong[]>([]);
   const [form] = Form.useForm();
-  const [tinhData, setTinhData] = useState([]);
-  const [quanData, setQuanData] = useState([]);
-  const [phuongData, setPhuongData] = useState([]);
   const [selectedTinh, setSelectedTinh] = useState("");
   const [selectedQuan, setSelectedQuan] = useState("");
   const [isVerificationStep, setIsVerificationStep] = useState(false);
@@ -50,7 +65,7 @@ const Register: React.FC = () => {
   const onRegisterFinish = async (values: any) => {
     try {
       // Gộp các phần của địa chỉ thành một chuỗi duy nhất
-      const fullAddress = `${values.sonha}, ${values.phuong}, ${selectedQuan}, ${selectedTinh}`;
+      const fullAddress = `${values.sonha}, ${values.phuong}, ${getQuanName(selectedQuan)}, ${getTinhName(selectedTinh)}`;
 
       // Tạo đối tượng user data, bao gồm địa chỉ đã gộp
       const userData = {
@@ -72,7 +87,15 @@ const Register: React.FC = () => {
       message.error("Đăng ký thất bại. Vui lòng thử lại!");
     }
   };
+  const getTinhName = (id: string) => {
+    const tinh = tinhData.find((t) => t.id === id);
+    return tinh ? tinh.full_name : "";
+  };
 
+  const getQuanName = (id: string) => {
+    const quan = quanData.find((q) => q.id === id);
+    return quan ? quan.full_name : "";
+  };
   const onVerificationFinish = async () => {
     try {
       const response = await userService.verifyEmail(email, verificationCode);
@@ -131,7 +154,7 @@ const Register: React.FC = () => {
             width: "50%",
             padding: "20px",
             margin: "auto",
-            marginBottom:"50px"
+            marginBottom: "50px",
           }}
         >
           <Form.Item

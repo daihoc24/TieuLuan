@@ -51,7 +51,7 @@ const Home: React.FC = () => {
           className="home_container"
           style={{ width: "75%", paddingLeft: 50 }}
         >
-          <Carousel style={{ paddingTop: 140 }}>
+          <Carousel style={{ paddingTop: 100 }}>
             <Carousel.Item>
               <img
                 className="d-block banner_home"

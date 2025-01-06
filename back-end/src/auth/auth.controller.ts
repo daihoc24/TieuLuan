@@ -16,7 +16,7 @@ import { Response } from 'express';
   async signup(@Body() signupDTO: signupDTO,@Res() res: Response) {
     res.send({
       message: 'Xử lí thành công!',
-      content: ((await this.authService.signup(signupDTO)).verificationCode)
+      content: ((await this.authService.signup(signupDTO)).message)
     });  }
   @Post('/Verify')
   async verify(@Body() body: { email: string; code: string },@Res() res: Response) {
